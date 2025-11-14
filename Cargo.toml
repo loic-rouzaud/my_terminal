@@ -5,7 +5,5 @@ edition = "2024"
 
 [dependencies]
 crossterm = "0.29.0"
-pixels = "0.15.0"
-reedline = "0.43.0"
 rusttype = "0.9.3"
 winit = "0.30.12"

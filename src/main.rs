@@ -2,18 +2,20 @@ use winit::application::ApplicationHandler;
 use winit::event::ElementState;
 use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
+use winit::keyboard::{Key, NamedKey};
 use winit::window::{Window, WindowId};
 
 #[derive(Default)]
 struct App {
     window: Option<Window>,
+    input_buffer: String,
 }
 
 impl ApplicationHandler for App {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         self.window = Some(
             event_loop
-                .create_window(Window::default_attributes())
+                .create_window(Window::default_attributes().with_title("my_terminal"))
                 .unwrap(),
         );
     }
@@ -26,14 +28,34 @@ impl ApplicationHandler for App {
             }
             WindowEvent::KeyboardInput {
                 event: key_event, ..
-            } => match key_event.state {
-                ElementState::Pressed => {
-                    println!("Key Pressed: {:?}", key_event.logical_key);
+            } => {
+                if key_event.state == ElementState::Pressed {
+                    match key_event.logical_key.as_ref() {
+                        Key::Named(NamedKey::Enter) => {
+                            // enter
+                            println!("Input complet: {}", self.input_buffer);
+                            self.input_buffer.clear();
+                            self.window.as_ref().unwrap().set_title("Input Example");
+                        }
+                        Key::Named(NamedKey::Backspace) => {
+                            // delete
+                            self.input_buffer.pop();
+                            self.update_title();
+                        }
+                        Key::Named(NamedKey::Space) => {
+                            // space
+                            self.input_buffer.push(' ');
+                            self.update_title();
+                        }
+                        Key::Character(c) => {
+                            // write
+                            self.input_buffer.push_str(c);
+                            self.update_title();
+                        }
+                        _ => {}
+                    }
                 }
-                ElementState::Released => {
-                    println!("Key Released: {:?}", key_event.logical_key);
-                }
-            },
+            }
             WindowEvent::RedrawRequested => {
                 // Redraw the application.
                 //
@@ -51,6 +73,14 @@ impl ApplicationHandler for App {
                 self.window.as_ref().unwrap().request_redraw();
             }
             _ => (),
+        }
+    }
+}
+
+impl App {
+    fn update_title(&self) {
+        if let Some(window) = &self.window {
+            window.set_title(&format!("Input: {}", self.input_buffer));
         }
     }
 }

@@ -1,4 +1,5 @@
 use winit::application::ApplicationHandler;
+use winit::event::ElementState;
 use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
 use winit::window::{Window, WindowId};
@@ -17,12 +18,22 @@ impl ApplicationHandler for App {
         );
     }
 
-    fn window_event(&mut self, event_loop: &ActiveEventLoop, id: WindowId, event: WindowEvent) {
+    fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
         match event {
             WindowEvent::CloseRequested => {
                 println!("The close button was pressed; stopping");
                 event_loop.exit();
             }
+            WindowEvent::KeyboardInput {
+                event: key_event, ..
+            } => match key_event.state {
+                ElementState::Pressed => {
+                    println!("Key Pressed: {:?}", key_event.logical_key);
+                }
+                ElementState::Released => {
+                    println!("Key Released: {:?}", key_event.logical_key);
+                }
+            },
             WindowEvent::RedrawRequested => {
                 // Redraw the application.
                 //

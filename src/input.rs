@@ -1,0 +1,54 @@
+use winit::event::{ElementState, KeyEvent};
+use winit::keyboard::{Key, NamedKey};
+
+#[derive(Default)]
+pub struct InputBuffer {
+    buffer: String,
+}
+
+impl InputBuffer {
+    pub fn handle_key_event(&mut self, key_event: KeyEvent) {
+        if key_event.state == ElementState::Pressed {
+            match key_event.logical_key.as_ref() {
+                Key::Named(NamedKey::Enter) => {
+                    self.on_enter();
+                }
+                Key::Named(NamedKey::Backspace) => {
+                    self.delete_char();
+                }
+                Key::Named(NamedKey::Space) => {
+                    self.add_space();
+                }
+                Key::Character(c) => {
+                    self.add_text(c);
+                }
+                _ => {}
+            }
+        }
+    }
+
+    fn on_enter(&mut self) {
+        println!("Input complet: {}", self.buffer);
+        self.buffer.clear();
+    }
+
+    fn delete_char(&mut self) {
+        self.buffer.pop();
+    }
+
+    fn add_space(&mut self) {
+        self.buffer.push(' ');
+    }
+
+    fn add_text(&mut self, text: &str) {
+        self.buffer.push_str(text);
+    }
+
+    pub fn get_buffer(&self) -> &str {
+        &self.buffer
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.buffer.is_empty()
+    }
+}

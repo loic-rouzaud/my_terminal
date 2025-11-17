@@ -38,13 +38,11 @@ impl WindowManager {
         }
     }
 
-    // Dessiner dans la fenêtre
     pub fn render(&mut self, input_buffer: &InputBuffer) {
         if let Some(renderer) = &mut self.renderer {
             match renderer.render(input_buffer.get_buffer()) {
                 Ok(_) => {}
                 Err(wgpu::SurfaceError::Lost) => {
-                    // Si la surface est perdue, on la reconfigure
                     if let Some(window) = &self.window {
                         let size = window.inner_size();
                         renderer.resize(size);
@@ -60,7 +58,6 @@ impl WindowManager {
         }
     }
 
-    // Gérer le redimensionnement
     pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
         if let Some(renderer) = &mut self.renderer {
             renderer.resize(new_size);

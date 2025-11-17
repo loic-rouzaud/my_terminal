@@ -26,20 +26,16 @@ impl ApplicationHandler for App {
             WindowEvent::KeyboardInput {
                 event: key_event, ..
             } => {
-                // Gérer l'input clavier
                 self.input_buffer.handle_key_event(key_event);
 
-                // Demander un redraw après chaque input
                 self.window_manager.request_redraw();
             }
 
             WindowEvent::RedrawRequested => {
-                // Dessiner le texte dans la fenêtre
                 self.window_manager.render(&self.input_buffer);
             }
 
             WindowEvent::Resized(physical_size) => {
-                // Gérer le redimensionnement
                 self.window_manager.resize(physical_size);
             }
 

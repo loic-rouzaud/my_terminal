@@ -47,9 +47,4 @@ impl InputBuffer {
     pub fn get_buffer(&self) -> &str {
         &self.buffer
     }
-
-    // #[warn(dead_code)]
-    // pub fn is_empty(&self) -> bool {
-    //     self.buffer.is_empty()
-    // }
 }

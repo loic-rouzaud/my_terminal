@@ -18,7 +18,7 @@ impl Default for WindowManager {
             window: None,
             renderer: None,
             scroll_offset: 0.0,
-            max_scroll: 10000.0,
+            max_scroll: 10000.0, // <- horrible mais je vois pas comment faire autrement pour l'instant
         }
     }
 }
@@ -32,6 +32,7 @@ impl WindowManager {
         );
 
         let renderer = pollster::block_on(Renderer::new(Arc::clone(&window)));
+        window.set_min_inner_size(Some(winit::dpi::PhysicalSize::new(300, 200))); // bloque la taille de la window
 
         self.renderer = Some(renderer);
         self.window = Some(window);

@@ -85,12 +85,17 @@ impl Renderer {
     }
 
     pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        if new_size.width > 0 && new_size.height > 0 {
+        if new_size.width == 0 || new_size.height == 0 {
             self.size = new_size;
-            self.config.width = new_size.width;
-            self.config.height = new_size.height;
-            self.surface.configure(&self.device, &self.config);
+            return;
         }
+
+        self.size = new_size;
+        self.config.width = new_size.width;
+        self.config.height = new_size.height;
+
+        // IMPORTANT : reconfigure seulement si w > 0 && h > 0 || Sinon CRASHHH ⚠️
+        self.surface.configure(&self.device, &self.config);
     }
 
     pub fn render(&mut self, text: &str, history: &[String]) -> Result<(), wgpu::SurfaceError> {

@@ -129,32 +129,42 @@ impl Renderer {
         }
 
         let prompt_y = self.size.height as f32 - 40.0;
-        let mut y = prompt_y - 25.0;
 
-        for entry in history.iter().rev().take(20) {
+        let line_height = 22.0;
+        let max_lines = (self.size.height as f32 / line_height) as usize - 2;
+
+        let visible_history = if history.len() > max_lines {
+            &history[history.len() - max_lines..]
+        } else {
+            history
+        };
+
+        let mut y = prompt_y - line_height;
+
+        for entry in visible_history.iter().rev() {
             self.glyph_brush.queue(Section {
-                screen_position: (15.0, y),
+                screen_position: (10.0, y),
                 bounds: (self.size.width as f32, self.size.height as f32),
                 text: vec![
                     Text::new(entry)
                         .with_color([0.5, 0.8, 1.0, 1.0])
-                        .with_scale(25.0),
+                        .with_scale(18.0),
                 ],
                 ..Section::default()
             });
 
-            y -= 22.0;
+            y -= line_height;
         }
 
         let prompt_text = format!("$ {}", text);
 
         self.glyph_brush.queue(Section {
-            screen_position: (15.0, prompt_y),
-            bounds: (self.size.width as f32 - 5.0, self.size.height as f32 - 5.0),
+            screen_position: (10.0, prompt_y),
+            bounds: (self.size.width as f32, self.size.height as f32),
             text: vec![
                 Text::new(&prompt_text)
                     .with_color([0.0, 1.0, 0.0, 1.0])
-                    .with_scale(30.0),
+                    .with_scale(20.0),
             ],
             ..Section::default()
         });

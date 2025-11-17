@@ -19,18 +19,33 @@ impl ApplicationHandler for App {
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
         match event {
             WindowEvent::CloseRequested => {
-                println!("The close button was pressed; stopping");
+                println!("Fermeture de la fenêtre");
                 event_loop.exit();
             }
+
             WindowEvent::KeyboardInput {
                 event: key_event, ..
             } => {
+                // Gérer l'input clavier
                 self.input_buffer.handle_key_event(key_event);
-                self.window_manager.update_title(&self.input_buffer); // only the title is updated for now. Winit doesnt manage drawing
-            }
-            WindowEvent::RedrawRequested => {
+
+                // Optionnel : mettre à jour le titre
+                self.window_manager.update_title(&self.input_buffer);
+
+                // Demander un redraw après chaque input
                 self.window_manager.request_redraw();
             }
+
+            WindowEvent::RedrawRequested => {
+                // Dessiner le texte dans la fenêtre
+                self.window_manager.render(&self.input_buffer);
+            }
+
+            WindowEvent::Resized(physical_size) => {
+                // Gérer le redimensionnement
+                self.window_manager.resize(physical_size);
+            }
+
             _ => (),
         }
     }

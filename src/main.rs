@@ -1,5 +1,6 @@
 mod app;
 mod input;
+mod renderer;
 mod window;
 
 use app::App;

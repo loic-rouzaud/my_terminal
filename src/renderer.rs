@@ -133,7 +133,7 @@ impl Renderer {
 
         for entry in history.iter().rev().take(20) {
             self.glyph_brush.queue(Section {
-                screen_position: (10.0, y),
+                screen_position: (15.0, y),
                 bounds: (self.size.width as f32, self.size.height as f32),
                 text: vec![
                     Text::new(entry)
@@ -149,8 +149,8 @@ impl Renderer {
         let prompt_text = format!("$ {}", text);
 
         self.glyph_brush.queue(Section {
-            screen_position: (10.0, prompt_y),
-            bounds: (self.size.width as f32, self.size.height as f32),
+            screen_position: (15.0, prompt_y),
+            bounds: (self.size.width as f32 - 5.0, self.size.height as f32 - 5.0),
             text: vec![
                 Text::new(&prompt_text)
                     .with_color([0.0, 1.0, 0.0, 1.0])

@@ -30,7 +30,7 @@ impl InputBuffer {
 
     fn on_enter(&mut self) {
         self.history.push(self.buffer.clone()); // Ajout de l'historique pour tester
-        println!("last : {}", self.buffer);
+        // println!("last : {}", self.buffer);
 
         self.buffer.clear();
     }

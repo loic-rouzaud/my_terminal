@@ -40,7 +40,7 @@ impl WindowManager {
 
     pub fn render(&mut self, input_buffer: &InputBuffer) {
         if let Some(renderer) = &mut self.renderer {
-            match renderer.render(input_buffer.get_buffer()) {
+            match renderer.render(input_buffer.get_buffer(), input_buffer.get_history()) {
                 Ok(_) => {}
                 Err(wgpu::SurfaceError::Lost) => {
                     if let Some(window) = &self.window {

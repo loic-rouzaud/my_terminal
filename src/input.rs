@@ -4,6 +4,7 @@ use winit::keyboard::{Key, NamedKey};
 #[derive(Default)]
 pub struct InputBuffer {
     buffer: String,
+    history: Vec<String>,
 }
 
 impl InputBuffer {
@@ -28,7 +29,9 @@ impl InputBuffer {
     }
 
     fn on_enter(&mut self) {
-        println!("Input complet: {}", self.buffer);
+        self.history.push(self.buffer.clone()); // Ajout de l'historique pour tester
+        println!("last : {}", self.buffer);
+
         self.buffer.clear();
     }
 
@@ -46,5 +49,9 @@ impl InputBuffer {
 
     pub fn get_buffer(&self) -> &str {
         &self.buffer
+    }
+
+    pub fn get_history(&self) -> &[String] {
+        &self.history
     }
 }

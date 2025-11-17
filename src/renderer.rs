@@ -35,10 +35,10 @@ impl Renderer {
         let (device, queue) = adapter
             .request_device(&wgpu::DeviceDescriptor {
                 label: None,
+                trace: wgpu::Trace::Off,
                 required_features: wgpu::Features::empty(),
                 required_limits: wgpu::Limits::default(),
                 memory_hints: Default::default(),
-                trace: wgpu::Trace::Off,
             })
             .await
             .unwrap();
@@ -93,7 +93,7 @@ impl Renderer {
         }
     }
 
-    pub fn render(&mut self, text: &str) -> Result<(), wgpu::SurfaceError> {
+    pub fn render(&mut self, text: &str, history: &[String]) -> Result<(), wgpu::SurfaceError> {
         let output = self.surface.get_current_texture()?;
         let view = output
             .texture
@@ -110,8 +110,8 @@ impl Renderer {
                 label: Some("Render Pass"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: &view,
-                    resolve_target: None,
                     depth_slice: None,
+                    resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color {
                             r: 0.0,
@@ -128,10 +128,28 @@ impl Renderer {
             });
         }
 
+        let prompt_y = self.size.height as f32 - 40.0;
+        let mut y = prompt_y - 25.0;
+
+        for entry in history.iter().rev().take(20) {
+            self.glyph_brush.queue(Section {
+                screen_position: (10.0, y),
+                bounds: (self.size.width as f32, self.size.height as f32),
+                text: vec![
+                    Text::new(entry)
+                        .with_color([0.5, 0.8, 1.0, 1.0])
+                        .with_scale(25.0),
+                ],
+                ..Section::default()
+            });
+
+            y -= 22.0;
+        }
+
         let prompt_text = format!("$ {}", text);
 
         self.glyph_brush.queue(Section {
-            screen_position: (10.0, 10.0),
+            screen_position: (10.0, prompt_y),
             bounds: (self.size.width as f32, self.size.height as f32),
             text: vec![
                 Text::new(&prompt_text)

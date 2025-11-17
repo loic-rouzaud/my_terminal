@@ -1,12 +1,15 @@
 use crate::input::InputBuffer;
 use crate::renderer::Renderer;
 use std::sync::Arc;
+use winit::event::MouseScrollDelta;
 use winit::event_loop::ActiveEventLoop;
 use winit::window::Window;
 
 pub struct WindowManager {
     window: Option<Arc<Window>>,
     renderer: Option<Renderer>,
+    scroll_offset: f32,
+    max_scroll: f32,
 }
 
 impl Default for WindowManager {
@@ -14,6 +17,8 @@ impl Default for WindowManager {
         Self {
             window: None,
             renderer: None,
+            scroll_offset: 0.0,
+            max_scroll: 10000.0,
         }
     }
 }
@@ -61,6 +66,24 @@ impl WindowManager {
     pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
         if let Some(renderer) = &mut self.renderer {
             renderer.resize(new_size);
+        }
+    }
+
+    pub fn handle_scroll(&mut self, delta: MouseScrollDelta) {
+        match delta {
+            MouseScrollDelta::LineDelta(_, y) => {
+                self.scroll_offset -= y * 20.0;
+            }
+            MouseScrollDelta::PixelDelta(pos) => {
+                self.scroll_offset -= pos.y as f32;
+            }
+        }
+
+        if self.scroll_offset < 0.0 {
+            self.scroll_offset = 0.0;
+        }
+        if self.scroll_offset > self.max_scroll {
+            self.scroll_offset = self.max_scroll;
         }
     }
 }

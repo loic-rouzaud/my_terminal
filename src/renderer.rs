@@ -148,7 +148,7 @@ impl Renderer {
                 text: vec![
                     Text::new(entry)
                         .with_color([0.5, 0.8, 1.0, 1.0])
-                        .with_scale(18.0),
+                        .with_scale(25.0),
                 ],
                 ..Section::default()
             });
@@ -164,7 +164,7 @@ impl Renderer {
             text: vec![
                 Text::new(&prompt_text)
                     .with_color([0.0, 1.0, 0.0, 1.0])
-                    .with_scale(20.0),
+                    .with_scale(30.0),
             ],
             ..Section::default()
         });

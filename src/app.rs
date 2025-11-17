@@ -39,6 +39,12 @@ impl ApplicationHandler for App {
                 self.window_manager.resize(physical_size);
             }
 
+            WindowEvent::MouseWheel { delta, .. } => {
+                self.window_manager.handle_scroll(delta);
+                self.window_manager.request_redraw();
+                println!("scrolling...");
+            }
+
             _ => (),
         }
     }

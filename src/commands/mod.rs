@@ -12,6 +12,6 @@ pub fn run_command(input: &str, buffer: &mut InputBuffer) {
     match parts[0] {
         "clear" => clear::execute(buffer),
         "echo" => echo::execute(&parts[1..], buffer),
-        _ => buffer.add_text("Command not found"),
+        _ => buffer.add_text(" : Command not found"),
     }
 }

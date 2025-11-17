@@ -86,7 +86,6 @@ impl Renderer {
 
     pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
         if new_size.width == 0 || new_size.height == 0 {
-            self.size = new_size;
             return;
         }
 
@@ -94,11 +93,15 @@ impl Renderer {
         self.config.width = new_size.width;
         self.config.height = new_size.height;
 
-        // IMPORTANT : reconfigure seulement si w > 0 && h > 0 || Sinon CRASHHH ⚠️
         self.surface.configure(&self.device, &self.config);
     }
 
-    pub fn render(&mut self, text: &str, history: &[String]) -> Result<(), wgpu::SurfaceError> {
+    pub fn render(
+        &mut self,
+        text: &str,
+        history: &[String],
+        scroll_offset: f32,
+    ) -> Result<(), wgpu::SurfaceError> {
         let output = self.surface.get_current_texture()?;
         let view = output
             .texture
@@ -118,12 +121,7 @@ impl Renderer {
                     depth_slice: None,
                     resolve_target: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 0.0,
-                            g: 0.0,
-                            b: 0.0,
-                            a: 1.0,
-                        }),
+                        load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
                         store: wgpu::StoreOp::Store,
                     },
                 })],
@@ -134,9 +132,12 @@ impl Renderer {
         }
 
         let prompt_y = self.size.height as f32 - 40.0;
-
         let line_height = 22.0;
         let max_lines = (self.size.height as f32 / line_height) as usize - 2;
+
+        let scroll = scroll_offset
+            .min(history.len() as f32 * line_height)
+            .max(0.0);
 
         let visible_history = if history.len() > max_lines {
             &history[history.len() - max_lines..]
@@ -144,7 +145,7 @@ impl Renderer {
             history
         };
 
-        let mut y = prompt_y - line_height;
+        let mut y = prompt_y - line_height + scroll;
 
         for entry in visible_history.iter().rev() {
             self.glyph_brush.queue(Section {
@@ -188,7 +189,6 @@ impl Renderer {
         self.staging_belt.finish();
         self.queue.submit(std::iter::once(encoder.finish()));
         output.present();
-
         self.staging_belt.recall();
 
         Ok(())

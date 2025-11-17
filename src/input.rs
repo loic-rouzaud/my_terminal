@@ -11,27 +11,17 @@ impl InputBuffer {
     pub fn handle_key_event(&mut self, key_event: KeyEvent) {
         if key_event.state == ElementState::Pressed {
             match key_event.logical_key.as_ref() {
-                Key::Named(NamedKey::Enter) => {
-                    self.on_enter();
-                }
-                Key::Named(NamedKey::Backspace) => {
-                    self.delete_char();
-                }
-                Key::Named(NamedKey::Space) => {
-                    self.add_space();
-                }
-                Key::Character(c) => {
-                    self.add_text(c);
-                }
+                Key::Named(NamedKey::Enter) => self.on_enter(),
+                Key::Named(NamedKey::Backspace) => self.delete_char(),
+                Key::Named(NamedKey::Space) => self.add_space(),
+                Key::Character(c) => self.add_text(c),
                 _ => {}
             }
         }
     }
 
     fn on_enter(&mut self) {
-        self.history.push(self.buffer.clone()); // Ajout de l'historique pour tester
-        // println!("last : {}", self.buffer);
-
+        self.history.push(self.buffer.clone());
         self.buffer.clear();
     }
 

@@ -6,10 +6,10 @@ use winit::event_loop::ActiveEventLoop;
 use winit::window::Window;
 
 pub struct WindowManager {
-    window: Option<Arc<Window>>,
-    renderer: Option<Renderer>,
-    scroll_offset: f32,
-    max_scroll: f32,
+    pub window: Option<Arc<Window>>,
+    pub renderer: Option<Renderer>,
+    pub scroll_offset: f32,
+    pub max_scroll: f32,
 }
 
 impl Default for WindowManager {
@@ -18,7 +18,7 @@ impl Default for WindowManager {
             window: None,
             renderer: None,
             scroll_offset: 0.0,
-            max_scroll: 10000.0, // <- horrible mais je vois pas comment faire autrement pour l'instant
+            max_scroll: 10000.0,
         }
     }
 }
@@ -32,7 +32,7 @@ impl WindowManager {
         );
 
         let renderer = pollster::block_on(Renderer::new(Arc::clone(&window)));
-        window.set_min_inner_size(Some(winit::dpi::PhysicalSize::new(300, 200))); // bloque la taille de la window
+        window.set_min_inner_size(Some(winit::dpi::PhysicalSize::new(300, 200)));
 
         self.renderer = Some(renderer);
         self.window = Some(window);
@@ -46,7 +46,11 @@ impl WindowManager {
 
     pub fn render(&mut self, input_buffer: &InputBuffer) {
         if let Some(renderer) = &mut self.renderer {
-            match renderer.render(input_buffer.get_buffer(), input_buffer.get_history()) {
+            match renderer.render(
+                input_buffer.get_buffer(),
+                input_buffer.get_history(),
+                self.scroll_offset,
+            ) {
                 Ok(_) => {}
                 Err(wgpu::SurfaceError::Lost) => {
                     if let Some(window) = &self.window {
@@ -73,10 +77,10 @@ impl WindowManager {
     pub fn handle_scroll(&mut self, delta: MouseScrollDelta) {
         match delta {
             MouseScrollDelta::LineDelta(_, y) => {
-                self.scroll_offset -= y * 20.0;
+                self.scroll_offset += y * 20.0;
             }
             MouseScrollDelta::PixelDelta(pos) => {
-                self.scroll_offset -= pos.y as f32;
+                self.scroll_offset += pos.y as f32;
             }
         }
 

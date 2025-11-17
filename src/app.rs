@@ -29,9 +29,6 @@ impl ApplicationHandler for App {
                 // Gérer l'input clavier
                 self.input_buffer.handle_key_event(key_event);
 
-                // Optionnel : mettre à jour le titre
-                self.window_manager.update_title(&self.input_buffer);
-
                 // Demander un redraw après chaque input
                 self.window_manager.request_redraw();
             }

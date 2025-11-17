@@ -32,17 +32,6 @@ impl WindowManager {
         self.window = Some(window);
     }
 
-    pub fn update_title(&self, input_buffer: &InputBuffer) {
-        if let Some(window) = &self.window {
-            let title = if input_buffer.is_empty() {
-                "my_terminal".to_string()
-            } else {
-                format!("Input: {}", input_buffer.get_buffer())
-            };
-            window.set_title(&title);
-        }
-    }
-
     pub fn request_redraw(&self) {
         if let Some(window) = &self.window {
             window.request_redraw();

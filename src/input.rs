@@ -15,8 +15,11 @@ impl InputBuffer {
             match key_event.logical_key.as_ref() {
                 Key::Named(NamedKey::Enter) => {
                     let cmd = self.buffer.clone();
-                    run_command(&cmd, self);
-                    self.history.push(self.buffer.clone());
+                    if cmd.trim() == "clear" {
+                        self.clear_history();
+                    } else {
+                        run_command(&cmd, self);
+                    }
                     self.buffer.clear();
                     self.scroll_offset = 0;
                 }

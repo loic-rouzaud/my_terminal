@@ -1,7 +1,7 @@
 mod app;
+mod commands;
 mod input;
-mod renderer;
-mod window;
+mod ui;
 
 use app::App;
 use winit::event_loop::{ControlFlow, EventLoop};

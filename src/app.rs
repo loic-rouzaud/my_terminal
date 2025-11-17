@@ -1,5 +1,5 @@
 use crate::input::InputBuffer;
-use crate::window::WindowManager;
+use crate::ui::window::WindowManager;
 use winit::application::ApplicationHandler;
 use winit::event::WindowEvent;
 use winit::event_loop::ActiveEventLoop;
@@ -27,7 +27,6 @@ impl ApplicationHandler for App {
                 event: key_event, ..
             } => {
                 self.input_buffer.handle_key_event(key_event);
-
                 self.window_manager.request_redraw();
             }
 

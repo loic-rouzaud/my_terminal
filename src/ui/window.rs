@@ -1,5 +1,5 @@
+use super::renderer::Renderer;
 use crate::input::InputBuffer;
-use crate::renderer::Renderer;
 use std::sync::Arc;
 use winit::event::MouseScrollDelta;
 use winit::event_loop::ActiveEventLoop;

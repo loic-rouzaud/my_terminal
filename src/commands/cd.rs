@@ -7,9 +7,7 @@ pub fn execute(buffer: &mut InputBuffer, args: &[&str]) {
         match env::var("HOME") {
             Ok(home) => home,
             Err(_) => {
-                buffer
-                    .history
-                    .push("cd: impossible de déterminer HOME".into());
+                buffer.history.push("cd: no HOME directory".into());
                 buffer.history.push(String::new());
                 return;
             }

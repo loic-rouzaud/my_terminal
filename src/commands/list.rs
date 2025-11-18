@@ -1,6 +1,6 @@
 use crate::input::InputBuffer;
 use std::fs;
-use std::os::unix::fs::PermissionsExt; // affichage des permissions
+use std::os::unix::fs::PermissionsExt; // pour les permissions
 use std::time::UNIX_EPOCH;
 
 pub fn execute(buffer: &mut InputBuffer, args: &[&str]) {
@@ -22,8 +22,8 @@ pub fn execute(buffer: &mut InputBuffer, args: &[&str]) {
         }
     }
 
-    let entries = match fs::read_dir(dir) {
-        Ok(e) => e,
+    let entries: Vec<_> = match fs::read_dir(dir) {
+        Ok(e) => e.flatten().collect(),
         Err(_) => {
             buffer
                 .history
@@ -33,52 +33,79 @@ pub fn execute(buffer: &mut InputBuffer, args: &[&str]) {
         }
     };
 
-    for entry in entries.flatten() {
-        let file_name = entry.file_name().to_string_lossy().to_string();
+    let mut entries: Vec<_> = entries.into_iter().collect();
+    entries.sort_by_key(|e| e.file_name());
 
-        if !show_all && file_name.starts_with('.') {
-            continue;
-        }
+    let single_line = !long_format && entries.len() <= 8;
 
-        let metadata = match entry.metadata() {
-            Ok(m) => m,
-            Err(_) => continue,
-        };
+    if single_line {
+        let mut line = String::new();
+        for entry in entries {
+            let file_name = entry.file_name().to_string_lossy().to_string();
+            if !show_all && file_name.starts_with('.') {
+                continue;
+            }
+            let metadata = match entry.metadata() {
+                Ok(m) => m,
+                Err(_) => continue,
+            };
 
-        let is_dir = metadata.is_dir();
-
-        if long_format {
-            let permissions = metadata.permissions().mode();
-            let size = metadata.len();
-
-            let datetime = metadata
-                .modified()
-                .ok()
-                .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
-                .map(|d| d.as_secs())
-                .unwrap_or(0);
-
-            let type_char = if is_dir { 'd' } else { '-' };
-            let perm_string = format!("{}{:o}", type_char, permissions & 0o777);
-
-            buffer.history.push(format!(
-                "{}  {:>8}  {}  {}",
-                perm_string,
-                size,
-                datetime,
-                if is_dir {
-                    format!("{}/", file_name)
-                } else {
-                    file_name
-                }
-            ));
-        } else {
-            let display = if is_dir {
+            let display = if metadata.is_dir() {
                 format!("{}/", file_name)
+            } else if metadata.permissions().mode() & 0o111 != 0 {
+                format!("{}*", file_name)
             } else {
                 file_name
             };
-            buffer.history.push(display);
+
+            line.push_str(&display);
+            line.push(' ');
+        }
+        buffer.history.push(line.trim().to_string());
+    } else {
+        for entry in entries {
+            let file_name = entry.file_name().to_string_lossy().to_string();
+            if !show_all && file_name.starts_with('.') {
+                continue;
+            }
+
+            let metadata = match entry.metadata() {
+                Ok(m) => m,
+                Err(_) => continue,
+            };
+
+            let is_dir = metadata.is_dir();
+
+            if long_format {
+                let permissions = metadata.permissions().mode();
+                let size = metadata.len();
+                let datetime = metadata
+                    .modified()
+                    .ok()
+                    .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
+                    .map(|d| d.as_secs())
+                    .unwrap_or(0);
+
+                let type_char = if is_dir { 'd' } else { '-' };
+                let perm_string = format!("{}{:o}", type_char, permissions & 0o777);
+
+                let display_name = if is_dir {
+                    format!("{}/", file_name)
+                } else {
+                    file_name
+                };
+                buffer.history.push(format!(
+                    "{}  {:>8}  {}  {}",
+                    perm_string, size, datetime, display_name
+                ));
+            } else {
+                let display_name = if is_dir {
+                    format!("{}/", file_name)
+                } else {
+                    file_name
+                };
+                buffer.history.push(display_name);
+            }
         }
     }
 

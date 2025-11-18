@@ -1,3 +1,4 @@
+pub mod cd;
 pub mod clear;
 pub mod echo;
 pub mod list;
@@ -12,8 +13,9 @@ pub fn run_command(input: &str, buffer: &mut InputBuffer) {
 
     match parts[0] {
         "clear" => clear::execute(buffer),
-        "echo" => echo::execute(&parts[1..], buffer),
+        "echo" => echo::execute(buffer, &parts[1..]),
         "ls" => list::execute(buffer, &parts[1..]),
+        "cd" => cd::execute(buffer, &parts[1..]),
         _ => {
             buffer
                 .history

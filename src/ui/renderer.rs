@@ -162,7 +162,23 @@ impl Renderer {
             y -= line_height;
         }
 
-        let prompt_text = format!("$ {}", text);
+        let user = std::env::var("USER").unwrap_or("user".into());
+        let home = std::env::var("HOME").unwrap_or("/".into());
+        let current_dir =
+            std::env::current_dir().unwrap_or_else(|_| std::path::Path::new(".").to_path_buf());
+
+        let display_path = if let Ok(stripped) = current_dir.strip_prefix(&home) {
+            let s = stripped.to_string_lossy();
+            if s.is_empty() {
+                "~".to_string()
+            } else {
+                format!("~{}", s)
+            }
+        } else {
+            current_dir.to_string_lossy().to_string()
+        };
+
+        let prompt_text = format!("{} - $ [{}] <()> {}", user, display_path, text);
 
         self.glyph_brush.queue(Section {
             screen_position: (10.0, prompt_y),

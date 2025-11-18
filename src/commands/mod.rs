@@ -42,6 +42,7 @@ pub fn run_command(input: &str, buffer: &mut InputBuffer) {
             buffer
                 .history
                 .push(format!("{} : Command not found", input));
+            buffer.history.push(String::new());
         }
     }
 }

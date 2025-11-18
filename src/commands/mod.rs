@@ -3,6 +3,7 @@ pub mod clear;
 pub mod echo;
 pub mod list;
 pub mod pwd;
+pub mod remove;
 
 use crate::input::InputBuffer;
 
@@ -37,6 +38,7 @@ pub fn run_command(input: &str, buffer: &mut InputBuffer) {
         "echo" => echo::execute(buffer, &parts[1..]),
         "ls" => list::execute(buffer, &parts[1..]),
         "cd" => cd::execute(buffer, &parts[1..]),
+        "rm" => remove::execute(buffer, &parts[1..]),
         "pwd" => pwd::execute(buffer),
         _ => {
             buffer

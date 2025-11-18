@@ -2,11 +2,33 @@ use crate::commands::run_command;
 use winit::event::{ElementState, KeyEvent};
 use winit::keyboard::{Key, NamedKey};
 
+#[derive(Clone, Debug)]
+pub struct ColoredText {
+    pub text: String,
+    pub color: [f32; 4],
+}
+
+impl ColoredText {
+    pub fn plain<S: Into<String>>(s: S) -> Self {
+        Self {
+            text: s.into(),
+            color: [1.0, 1.0, 1.0, 1.0],
+        }
+    }
+
+    pub fn colored<S: Into<String>>(s: S, color: [f32; 4]) -> Self {
+        Self {
+            text: s.into(),
+            color,
+        }
+    }
+}
+
 #[derive(Default)]
 pub struct InputBuffer {
     buffer: String,
-    pub history: Vec<String>,
-    scroll_offset: i32,
+    pub history: Vec<Vec<ColoredText>>,
+    pub scroll_offset: i32,
 }
 
 impl InputBuffer {
@@ -34,9 +56,11 @@ impl InputBuffer {
     fn delete_char(&mut self) {
         self.buffer.pop();
     }
+
     fn add_space(&mut self) {
         self.buffer.push(' ');
     }
+
     pub fn add_text(&mut self, text: &str) {
         self.buffer.push_str(text);
     }
@@ -44,12 +68,21 @@ impl InputBuffer {
     pub fn get_buffer(&self) -> &str {
         &self.buffer
     }
-    pub fn get_history(&self) -> &[String] {
+
+    pub fn get_history(&self) -> &Vec<Vec<ColoredText>> {
         &self.history
     }
 
     pub fn clear_history(&mut self) {
         self.history.clear();
         self.scroll_offset = 0;
+    }
+
+    pub fn push_plain_line(&mut self, s: &str) {
+        self.history.push(vec![ColoredText::plain(s)]);
+    }
+
+    pub fn push_colored_line(&mut self, parts: Vec<ColoredText>) {
+        self.history.push(parts);
     }
 }

@@ -1,4 +1,4 @@
-use crate::input::InputBuffer;
+use crate::input::{ColoredText, InputBuffer};
 use std::fs;
 use std::path::Path;
 
@@ -13,7 +13,10 @@ pub fn execute(buffer: &mut InputBuffer, args: &[&str]) {
                 match c {
                     'r' => recursive = true,
                     'f' => force = true,
-                    _ => buffer.history.push(format!("Option inconnue : -{}", c)),
+                    _ => buffer.push_colored_line(vec![ColoredText::colored(
+                        format!("Option inconnue : -{}", c),
+                        [1.0, 0.5, 0.5, 1.0],
+                    )]),
                 }
             }
         } else {
@@ -22,10 +25,11 @@ pub fn execute(buffer: &mut InputBuffer, args: &[&str]) {
     }
 
     if targets.is_empty() {
-        buffer
-            .history
-            .push("rm: aucun fichier ou dossier spécifié".into());
-        buffer.history.push(String::new());
+        buffer.push_colored_line(vec![ColoredText::colored(
+            "rm: aucun fichier ou dossier spécifié",
+            [1.0, 0.5, 0.5, 1.0], // rouge
+        )]);
+        buffer.push_plain_line("");
         return;
     }
 
@@ -34,9 +38,10 @@ pub fn execute(buffer: &mut InputBuffer, args: &[&str]) {
 
         if !path.exists() {
             if !force {
-                buffer
-                    .history
-                    .push(format!("rm: {}: fichier ou dossier inexistant", target));
+                buffer.push_colored_line(vec![ColoredText::colored(
+                    format!("rm: {}: fichier ou dossier inexistant", target),
+                    [1.0, 0.5, 0.5, 1.0], // rouge
+                )]);
             }
             continue;
         }
@@ -44,24 +49,26 @@ pub fn execute(buffer: &mut InputBuffer, args: &[&str]) {
         if path.is_dir() {
             if recursive {
                 if let Err(e) = fs::remove_dir_all(path) {
-                    buffer
-                        .history
-                        .push(format!("rm: impossible de supprimer {}: {}", target, e));
+                    buffer.push_colored_line(vec![ColoredText::colored(
+                        format!("rm: impossible de supprimer {}: {}", target, e),
+                        [1.0, 0.5, 0.5, 1.0], // rouge
+                    )]);
                 }
             } else {
-                buffer.history.push(format!(
-                    "rm: {} est un dossier (utiliser -r pour récursif)",
-                    target
-                ));
+                buffer.push_colored_line(vec![ColoredText::colored(
+                    format!("rm: {} est un dossier (utiliser -r pour récursif)", target),
+                    [1.0, 0.5, 0.5, 1.0], // rouge
+                )]);
             }
         } else {
             if let Err(e) = fs::remove_file(path) {
-                buffer
-                    .history
-                    .push(format!("rm: impossible de supprimer {}: {}", target, e));
+                buffer.push_colored_line(vec![ColoredText::colored(
+                    format!("rm: impossible de supprimer {}: {}", target, e),
+                    [1.0, 0.5, 0.5, 1.0], // rouge
+                )]);
             }
         }
     }
 
-    buffer.history.push(String::new());
+    buffer.push_plain_line("");
 }

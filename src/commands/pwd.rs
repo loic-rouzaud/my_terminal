@@ -1,17 +1,20 @@
-use crate::input::InputBuffer;
+use crate::input::{ColoredText, InputBuffer};
 use std::env;
 
 pub fn execute(buffer: &mut InputBuffer) {
-    match env::current_dir() {
+    let line = match env::current_dir() {
         Ok(path) => {
-            buffer.history.push(path.to_string_lossy().to_string());
+            let text = path.to_string_lossy().to_string();
+            vec![ColoredText::colored(text, [0.8, 0.8, 1.0, 1.0])]
         }
         Err(e) => {
-            buffer
-                .history
-                .push(format!("pwd: error while executing: {}", e));
+            vec![ColoredText::colored(
+                format!("pwd: error while executing: {}", e),
+                [1.0, 0.5, 0.5, 1.0],
+            )]
         }
-    }
+    };
 
-    buffer.history.push(String::new());
+    buffer.push_colored_line(line);
+    buffer.push_plain_line("");
 }

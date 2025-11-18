@@ -1,6 +1,6 @@
-use crate::input::InputBuffer;
+use crate::input::{ColoredText, InputBuffer};
 use std::fs;
-use std::os::unix::fs::PermissionsExt; // pour les permissions
+use std::os::unix::fs::PermissionsExt;
 use std::time::UNIX_EPOCH;
 
 pub fn execute(buffer: &mut InputBuffer, args: &[&str]) {
@@ -14,7 +14,7 @@ pub fn execute(buffer: &mut InputBuffer, args: &[&str]) {
                 match c {
                     'a' => show_all = true,
                     'l' => long_format = true,
-                    _ => buffer.history.push(format!("Option inconnue : -{}", c)),
+                    _ => buffer.push_plain_line(&format!("Option inconnue : -{}", c)),
                 }
             }
         } else {
@@ -25,10 +25,8 @@ pub fn execute(buffer: &mut InputBuffer, args: &[&str]) {
     let entries: Vec<_> = match fs::read_dir(dir) {
         Ok(e) => e.flatten().collect(),
         Err(_) => {
-            buffer
-                .history
-                .push(format!("Erreur : le dossier '{}' n'existe pas.", dir));
-            buffer.history.push(String::new());
+            buffer.push_plain_line(&format!("Erreur : le dossier '{}' n'existe pas.", dir));
+            buffer.push_plain_line("");
             return;
         }
     };
@@ -39,7 +37,7 @@ pub fn execute(buffer: &mut InputBuffer, args: &[&str]) {
     let single_line = !long_format && entries.len() <= 8;
 
     if single_line {
-        let mut line = String::new();
+        let mut parts: Vec<ColoredText> = Vec::new();
         for entry in entries {
             let file_name = entry.file_name().to_string_lossy().to_string();
             if !show_all && file_name.starts_with('.') {
@@ -50,31 +48,32 @@ pub fn execute(buffer: &mut InputBuffer, args: &[&str]) {
                 Err(_) => continue,
             };
 
-            let display = if metadata.is_dir() {
-                format!("{}/", file_name)
+            let (display, color) = if metadata.is_dir() {
+                (format!("{}/", file_name), [0.4, 0.5, 1.0, 1.0])
             } else if metadata.permissions().mode() & 0o111 != 0 {
-                format!("{}*", file_name)
+                (format!("{}*", file_name), [1.0, 0.3, 0.3, 1.0])
             } else {
-                file_name
+                (file_name.clone(), [1.0, 1.0, 1.0, 1.0])
             };
-
-            line.push_str(&display);
-            line.push(' ');
+            parts.push(ColoredText::colored(format!("{} ", display), color));
         }
-        buffer.history.push(line.trim().to_string());
+        if !parts.is_empty() {
+            buffer.push_colored_line(parts);
+        } else {
+            buffer.push_plain_line("");
+        }
     } else {
         for entry in entries {
             let file_name = entry.file_name().to_string_lossy().to_string();
             if !show_all && file_name.starts_with('.') {
                 continue;
             }
-
             let metadata = match entry.metadata() {
                 Ok(m) => m,
                 Err(_) => continue,
             };
-
             let is_dir = metadata.is_dir();
+            let is_exec = !is_dir && (metadata.permissions().mode() & 0o111 != 0);
 
             if long_format {
                 let permissions = metadata.permissions().mode();
@@ -85,29 +84,34 @@ pub fn execute(buffer: &mut InputBuffer, args: &[&str]) {
                     .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
                     .map(|d| d.as_secs())
                     .unwrap_or(0);
-
                 let type_char = if is_dir { 'd' } else { '-' };
                 let perm_string = format!("{}{:o}", type_char, permissions & 0o777);
 
-                let display_name = if is_dir {
-                    format!("{}/", file_name)
+                let mut parts: Vec<ColoredText> = Vec::new();
+                parts.push(ColoredText::plain(format!("{} ", perm_string)));
+                parts.push(ColoredText::plain(format!("{:>8} ", size)));
+                parts.push(ColoredText::plain(format!("{} ", datetime)));
+                let name_part = if is_dir {
+                    ColoredText::colored(format!("{}/", file_name), [0.4, 0.5, 1.0, 1.0])
+                } else if is_exec {
+                    ColoredText::colored(file_name.clone(), [1.0, 0.3, 0.3, 1.0])
                 } else {
-                    file_name
+                    ColoredText::plain(file_name.clone())
                 };
-                buffer.history.push(format!(
-                    "{}  {:>8}  {}  {}",
-                    perm_string, size, datetime, display_name
-                ));
+                parts.push(name_part);
+                buffer.push_colored_line(parts);
             } else {
-                let display_name = if is_dir {
-                    format!("{}/", file_name)
+                let part = if is_dir {
+                    ColoredText::colored(format!("{}/", file_name), [0.4, 0.5, 1.0, 1.0])
+                } else if is_exec {
+                    ColoredText::colored(file_name.clone(), [1.0, 0.3, 0.3, 1.0])
                 } else {
-                    file_name
+                    ColoredText::plain(file_name.clone())
                 };
-                buffer.history.push(display_name);
+                buffer.push_colored_line(vec![part]);
             }
         }
     }
 
-    buffer.history.push(String::new());
+    buffer.push_plain_line("");
 }

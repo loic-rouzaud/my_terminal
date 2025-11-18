@@ -5,7 +5,7 @@ pub mod list;
 pub mod pwd;
 pub mod remove;
 
-use crate::input::InputBuffer;
+use crate::input::{ColoredText, InputBuffer};
 
 pub fn run_command(input: &str, buffer: &mut InputBuffer) {
     let parts: Vec<&str> = input.trim().split_whitespace().collect();
@@ -29,9 +29,25 @@ pub fn run_command(input: &str, buffer: &mut InputBuffer) {
         current_dir.to_string_lossy().to_string()
     };
 
-    buffer
-        .history
-        .push(format!("{} - $ [{}] <()> {}", user, display_path, input));
+    let mut prompt_parts = Vec::new();
+    prompt_parts.push(ColoredText::colored(
+        format!("{} - $ [", user),
+        [0.7, 0.7, 0.7, 1.0],
+    ));
+    prompt_parts.push(ColoredText::colored(
+        display_path.clone(),
+        [0.5, 0.8, 1.0, 1.0],
+    ));
+    prompt_parts.push(ColoredText::colored(
+        "] <()> ".to_string(),
+        [0.7, 0.7, 0.7, 1.0],
+    ));
+    prompt_parts.push(ColoredText::colored(
+        input.to_string(),
+        [1.0, 1.0, 1.0, 1.0],
+    ));
+
+    buffer.push_colored_line(prompt_parts);
 
     match parts[0] {
         "clear" => clear::execute(buffer),
@@ -41,10 +57,13 @@ pub fn run_command(input: &str, buffer: &mut InputBuffer) {
         "rm" => remove::execute(buffer, &parts[1..]),
         "pwd" => pwd::execute(buffer),
         _ => {
-            buffer
-                .history
-                .push(format!("{} : Command not found", input));
-            buffer.history.push(String::new());
+            let mut error_line = Vec::new();
+            error_line.push(ColoredText::colored(
+                format!("{} : Command not found", input),
+                [1.0, 0.3, 0.3, 1.0],
+            ));
+            buffer.push_colored_line(error_line);
+            buffer.push_plain_line("");
         }
     }
 }

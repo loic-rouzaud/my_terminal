@@ -1,4 +1,4 @@
-use crate::input::InputBuffer;
+use crate::input::{ColoredText, InputBuffer};
 use std::env;
 use std::path::Path;
 
@@ -7,8 +7,11 @@ pub fn execute(buffer: &mut InputBuffer, args: &[&str]) {
         match env::var("HOME") {
             Ok(home) => home,
             Err(_) => {
-                buffer.history.push("cd: no HOME directory".into());
-                buffer.history.push(String::new());
+                buffer.push_colored_line(vec![ColoredText::colored(
+                    "cd: no HOME directory".to_string(),
+                    [1.0, 0.5, 0.5, 1.0],
+                )]);
+                buffer.push_plain_line("");
                 return;
             }
         }
@@ -19,10 +22,13 @@ pub fn execute(buffer: &mut InputBuffer, args: &[&str]) {
     let path = Path::new(&target);
 
     if let Err(e) = env::set_current_dir(&path) {
-        buffer.history.push(format!("cd: {}: {}", target, e));
-        buffer.history.push(String::new());
+        buffer.push_colored_line(vec![ColoredText::colored(
+            format!("cd: {}: {}", target, e),
+            [1.0, 0.5, 0.5, 1.0],
+        )]);
+        buffer.push_plain_line("");
         return;
     }
 
-    buffer.history.push(String::new());
+    buffer.push_plain_line("");
 }

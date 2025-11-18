@@ -48,6 +48,7 @@ impl WindowManager {
         if let Some(renderer) = &mut self.renderer {
             match renderer.render(
                 input_buffer.get_buffer(),
+                true,
                 input_buffer.get_history(),
                 self.scroll_offset,
             ) {

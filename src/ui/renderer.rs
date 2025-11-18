@@ -2,6 +2,8 @@ use std::sync::Arc;
 use wgpu_glyph::{GlyphBrush, GlyphBrushBuilder, Section, Text, ab_glyph};
 use winit::window::Window;
 
+use crate::input::ColoredText;
+
 pub struct Renderer {
     surface: wgpu::Surface<'static>,
     device: wgpu::Device,
@@ -98,8 +100,9 @@ impl Renderer {
 
     pub fn render(
         &mut self,
-        text: &str,
-        history: &[String],
+        last_command: &str,
+        last_command_success: bool,
+        history: &[Vec<ColoredText>],
         scroll_offset: f32,
     ) -> Result<(), wgpu::SurfaceError> {
         let output = self.surface.get_current_texture()?;
@@ -147,21 +150,28 @@ impl Renderer {
 
         let mut y = prompt_y - line_height + scroll;
 
-        for entry in visible_history.iter().rev() {
+        // Affichage de l'historique colorisé
+        for line in visible_history.iter().rev() {
+            let texts: Vec<Text> = line
+                .iter()
+                .map(|part| {
+                    Text::new(&part.text)
+                        .with_color(part.color)
+                        .with_scale(30.0)
+                })
+                .collect();
+
             self.glyph_brush.queue(Section {
                 screen_position: (10.0, y),
                 bounds: (self.size.width as f32, self.size.height as f32),
-                text: vec![
-                    Text::new(entry)
-                        .with_color([0.5, 0.8, 1.0, 1.0])
-                        .with_scale(30.0),
-                ],
+                text: texts,
                 ..Section::default()
             });
 
             y -= line_height;
         }
 
+        // Prompt utilisateur colorisé
         let user = std::env::var("USER").unwrap_or("user".into());
         let home = std::env::var("HOME").unwrap_or("/".into());
         let current_dir =
@@ -178,16 +188,34 @@ impl Renderer {
             current_dir.to_string_lossy().to_string()
         };
 
-        let prompt_text = format!("{} - $ [{}] <()> {}", user, display_path, text);
+        let prompt_parts = vec![
+            ColoredText::colored(user, [0.3, 1.0, 0.3, 1.0]),
+            ColoredText::colored(" - $ [".to_string(), [1.0, 1.0, 1.0, 1.0]),
+            ColoredText::colored(display_path, [1.0, 1.0, 1.0, 1.0]),
+            ColoredText::colored("] <()> ".to_string(), [1.0, 1.0, 1.0, 1.0]),
+            ColoredText::colored(
+                last_command.to_string(),
+                if last_command_success {
+                    [0.3, 1.0, 0.3, 1.0]
+                } else {
+                    [1.0, 0.3, 0.3, 1.0]
+                },
+            ),
+        ];
+
+        let texts: Vec<Text> = prompt_parts
+            .iter()
+            .map(|part| {
+                Text::new(&part.text)
+                    .with_color(part.color)
+                    .with_scale(30.0)
+            })
+            .collect();
 
         self.glyph_brush.queue(Section {
             screen_position: (10.0, prompt_y),
             bounds: (self.size.width as f32, self.size.height as f32),
-            text: vec![
-                Text::new(&prompt_text)
-                    .with_color([1.0, 1.0, 1.0, 1.0])
-                    .with_scale(30.0),
-            ],
+            text: texts,
             ..Section::default()
         });
 

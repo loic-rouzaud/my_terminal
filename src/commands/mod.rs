@@ -12,6 +12,9 @@ pub fn run_command(input: &str, buffer: &mut InputBuffer) {
         return;
     }
 
+    let user = std::env::var("USER").unwrap_or("user".into());
+    buffer.history.push(format!("{} - $ {}", user, input));
+
     match parts[0] {
         "clear" => clear::execute(buffer),
         "echo" => echo::execute(buffer, &parts[1..]),

@@ -13,7 +13,7 @@ pub fn run_command(input: &str, buffer: &mut InputBuffer) {
     match parts[0] {
         "clear" => clear::execute(buffer),
         "echo" => echo::execute(&parts[1..], buffer),
-        "ls" => list::execute(buffer),
+        "ls" => list::execute(buffer, &parts[1..]),
         _ => {
             buffer
                 .history
